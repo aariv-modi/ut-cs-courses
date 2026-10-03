@@ -1,0 +1,13 @@
+# third-party content and scrape caches are not redistributed; they are re-fetched by the pipeline
+data/cache/
+data/syllabi/
+data/raw/
+data/batches/
+data/chapter_batches/
+node_modules/
+site/dist/
+site/.astro/
+__pycache__/
+
+# the whole data/ folder (registrar exports, syllabus text, snapshots) stays local; the site ships its own data in site/src/data
+data/

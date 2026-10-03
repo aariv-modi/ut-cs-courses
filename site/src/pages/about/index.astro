@@ -1,0 +1,39 @@
+---
+import Docs from '../../layouts/Docs.astro';
+import { base, generated } from '../../lib/courses';
+const toc = [
+  { id: 'sources', label: 'Where the data comes from' },
+  { id: 'window', label: 'Window and rules' },
+  { id: 'offered', label: 'What counts as “offered”' },
+  { id: 'labels', label: 'How to read topic labels' },
+];
+---
+<Docs title="About & sources · UT CS Course Explorer" description="Where the data comes from and how to read it." active="about" toc={toc}>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href={base}>Home</a><span class="sep">/</span><span>About &amp; sources</span></nav>
+  <h1>About &amp; sources</h1>
+  <p class="lede">Everything here is compiled from public University of Texas at Austin pages. Every topic links back to the text it came from.</p>
+
+  <h2 id="sources">Where the data comes from</h2>
+  <ul>
+    <li><strong>Course list &amp; prerequisites:</strong> UT Austin course catalog and the UT CS department's undergraduate course list.</li>
+    <li><strong>Who taught what, and syllabi:</strong> UT's public <a href="https://utdirect.utexas.edu/apps/student/coursedocs/nlogon/">Syllabi &amp; CVs</a> repository (published under Texas Education Code §51.974).</li>
+    <li><strong>Spring 2027 instructors:</strong> the UT CS department's class listing. Names there are abbreviated and the schedule can change.</li>
+  </ul>
+
+  <h2 id="window">Window and rules</h2>
+  <p>Terms covered: Fall 2025, Spring 2026, Fall 2026 and the upcoming Spring 2027. Summer terms are never included. Only undergraduate CS-department courses are listed.
+    A course in the current catalog that wasn't taught in any of these four terms shows the most recent earlier Fall or Spring term it was offered (searched back to Fall 2010), or says there is no record.</p>
+
+  <h2 id="offered">What counts as “offered”</h2>
+  <p>A course counts as offered in a past or current semester only if UT's public Syllabi &amp; CVs repository, which is built from registered class sections, has a section for it.
+    The CS department's class listing also shows sections that were later cancelled, so it is not treated as proof. Spring 2027 can only come from that department listing,
+    so it is the <em>planned</em> schedule and a section may still change or be cancelled.</p>
+
+  <h2 id="labels">How to read topic labels</h2>
+  <ul>
+    <li><span class="tag explicit" style="margin-left:0">stated</span> the syllabus itself names the topic (with the quoted text).</li>
+    <li><span class="tag derived" style="margin-left:0">from textbook</span> the syllabus only cites textbook chapters, so topics come from that book's table of contents.</li>
+    <li>No topic found means the public syllabus doesn't list it. Instructors often keep detailed schedules on Canvas, which isn't public.</li>
+  </ul>
+  <p class="muted small">Data last refreshed {generated}.</p>
+</Docs>
