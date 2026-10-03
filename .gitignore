@@ -10,4 +10,4 @@ site/.astro/
 __pycache__/
 
 # the whole data/ folder (registrar exports, syllabus text, snapshots) stays local; the site ships its own data in site/src/data
-data/
+/data/
