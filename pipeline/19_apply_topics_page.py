@@ -1,99 +1,68 @@
-"""CS 314: credit BOTH instructors (Kaur, Scott) with every topic on the course topics-list page
-(https://www.cs.utexas.edu/~scottm/cs314/handouts/topicsList.htm), as the project owner asked.
+"""CS 314: the topic list is the course topics-list page
+(https://www.cs.utexas.edu/~scottm/cs314/handouts/topicsList.htm), applied identically to both instructors
+(Kaur, Scott), at the project owner's request: both sections teach the same content from that page.
 
-* Kaur's syllabus PDF links to the page (hidden hyperlink). Scott's syllabus points to his course web page and numbers
-  exam coverage "Topics 1 - 9" etc. but does not print this URL; the credit for him is recorded as such.
-* Adds the page's numbered MAJOR topics only (sub-topics are not rows; merged into existing labels where they match); rows that already exist (same concept) just gain
-  the missing instructor's credit. The "Prerequisite knowledge" list and "Course Introduction" are not treated as topics.
-* Quotes come from data/supplemental/314_topicsList.txt (accepted by the validator via topic_in extra_text_files).
-Idempotent: rows/credits added by an earlier run (marked supplemental) are removed first.
+The page's numbered major topics (and a few sub-topics that are main topics in their own right) are whittled to
+the same granularity as other courses. "Course Introduction", "General skills" headings and the
+"Prerequisite knowledge" list are not topics. Every row is credited to both instructors with the same verbatim quote
+from data/supplemental/314_topicsList.txt (accepted by the validator via topic_in extra_text_files).
+Re-runnable: it rebuilds the topic list from scratch each time.
 """
-import json, re
+import json
 from common import ROOT
 
 URL = "https://www.cs.utexas.edu/~scottm/cs314/handouts/topicsList.htm"
 page = json.load(open(ROOT / "data/supplemental/314_topicsList.json", encoding="utf8"))
 path = ROOT / "data/topic_out/314.json"
 d = json.load(open(path, encoding="utf8"))
-KAUR, SCOTT = "Amrita Kaur", "Michael Scott"
-norm = lambda s: re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()
+INSTRUCTORS = ["Amrita Kaur", "Michael Scott"]
 
-# ---- undo a previous run
-d["topics"] = [t for t in d["topics"] if not t.get("supplemental")]
-for t in d["topics"]:
-    for k in [k for k, c in t["coverage"].items() if c.get("supplemental")]:
-        del t["coverage"][k]
-
-MAJOR_TO_EXISTING = {
-    "Complexity / Algorithm Analysis": ["Algorithm analysis"], "Encapsulation": ["Encapsulation"], "Inheritance": ["Inheritance"],
-    "Polymorphism": ["Polymorphism"], "Iterators": ["Iterators"], "Recursion": ["Recursion"],
-    "Searching, Simple Sorts": ["Sorting and searching algorithms"], "Stacks": ["Stacks"], "Queues": ["Queues"],
-    "Trees": ["Trees"], "Binary Search Trees": ["Binary search trees"], "Heaps": ["Heaps"], "Graphs": ["Graphs"],
-    "The Trie data structure. Implementation and uses.": ["Tries"], "Hash tables": ["Hash tables"],
-    "Dynamic Programming": ["Dynamic programming"], "Functional Programming in Java via streams.": ["Functional programming in Java"],
-    "Maps, Sets": ["Maps", "Sets"], "Red-Black Trees": ["Balanced binary search trees"], "Fast Sorting": ["Sorting and searching algorithms"],
-}
-MAJOR_NEW_LABEL = {"Generics": "Generics", "Interfaces": "Interfaces", "Abstract Classes": "Abstract classes", "Linked Lists": "Linked lists",
-                   "Recursive Backtracking": "Recursive backtracking",
-                   "Hoffman code tress": "Huffman code trees"}
-SKIP_MAJOR = {"Course Introduction", "General skills"}
-SHORT = [
-    ("rules of algorithm analysis", "Rules of algorithm analysis (what counts as one statement)"),
-    ("application of Big O, determining t(N)", "Determining t(N), the exact statement count of code"),
-    ("application of Big O, determining f(n)", "Determining f(n), the approximate statement count of code"),
-    ("various Big O functions", "Common Big O functions, O(1) through O(N!)"),
-    ("given a Big O function, a value of N", "Predicting runtime for different values of N"),
-    ("overriding the, equals", "Overriding equals; instanceof vs. getClass()"),
+# label -> (page topic number, verbatim quote: a major-topic title or a sub-topic under it)
+ROWS = [
+    ("Algorithm analysis", 2, "Complexity / Algorithm Analysis"),
+    ("Encapsulation", 3, "Encapsulation"),
+    ("Reasoning about programs with pre/post conditions", 3, "pre and post conditions, writing and checking"),
+    ("Inheritance", 4, "Inheritance"),
+    ("Polymorphism", 5, "Polymorphism"),
+    ("Generics", 6, "Generics"),
+    ("Interfaces", 7, "Interfaces"),
+    ("Iterators", 8, "Iterators"),
+    ("Abstract classes", 9, "Abstract Classes"),
+    ("Maps", 10, "Maps, Sets"),
+    ("Sets", 10, "Maps, Sets"),
+    ("Linked lists", 11, "Linked Lists"),
+    ("Recursion", 12, "Recursion"),
+    ("Recursive backtracking", 13, "Recursive Backtracking"),
+    ("Sorting and searching algorithms", 14, "Searching, Simple Sorts"),
+    ("Stacks", 15, "Stacks"),
+    ("Queues", 16, "Queues"),
+    ("Trees", 18, "Trees"),
+    ("Binary search trees", 19, "Binary Search Trees"),
+    ("Balanced binary search trees", 20, "Red-Black Trees"),
+    ("Huffman code trees", 21, "Hoffman code tress"),
+    ("Heaps", 22, "Heaps"),
+    ("Priority queues", 22, "priority queue interface and implementation"),
+    ("Graphs", 23, "Graphs"),
+    ("Tries", 24, "The Trie data structure. Implementation and uses."),
+    ("Hash tables", 25, "Hash tables"),
+    ("Dynamic programming", 26, "Dynamic Programming"),
+    ("Functional programming in Java", 27, "Functional Programming in Java via streams."),
+    ("Debugging", 28, "debug code using a debugger"),
 ]
+majors = {t["n"]: t for t in page["topics"]}
+EXTRA = {"Sorting and searching algorithms": " (also topic 17: Fast Sorting)"}
 
-
-def short_label(text):
-    for pre, lab in SHORT:
-        if text.lower().startswith(pre.lower()):
-            return lab
-    t = re.sub(r"\s+", " ", text).strip()
-    return t if len(t) <= 88 else t[:85].rsplit(" ", 1)[0] + "..."
-
-
-rows = {norm(t["label"]): t for t in d["topics"]}
-log = {"new_rows": 0, "credited_existing": 0}
-
-
-def credit(row, instructor, evidence, where, as_written):
-    if instructor in row["coverage"]:
-        return False
-    row["coverage"][instructor] = {"status": "stated", "evidence": evidence, "where": where, "as_written": as_written, "supplemental": "topicsList.htm"}
-    return True
-
-
-def where_for(instr, n, major):
-    base = f"Course topics list page (topicsList.htm), topic {n}: {major}"
-    if instr == KAUR:
-        return base + ". Linked from this syllabus."
-    return base + ". Scott's syllabus points to his course web page and numbers exam coverage as topics, but does not print this URL."
-
-
-def add(label, evidence, n, major, as_written):
-    key = norm(label)
-    row = rows.get(key)
-    if row is None:
-        row = {"label": label, "coverage": {}, "supplemental": True}
-        d["topics"].append(row); rows[key] = row; log["new_rows"] += 1
-    for instr in (KAUR, SCOTT):
-        if credit(row, instr, evidence, where_for(instr, n, major), as_written):
-            log["credited_existing"] += 0 if row.get("supplemental") else 1
-    return row
-
-
-for t in page["topics"]:
-    n, major = t["n"], t["topic"]
-    if major not in SKIP_MAJOR:
-        for lab in MAJOR_TO_EXISTING.get(major, [MAJOR_NEW_LABEL.get(major, short_label(major))]):
-            add(lab, major, n, major, major)
-
-# instructors: both point at the page as their detailed topic source
-for who in (KAUR, SCOTT):
+topics = []
+for label, n, quote in ROWS:
+    m = majors[n]
+    assert quote == m["topic"] or quote in m["subtopics"], (label, quote)
+    where = f"Course topics list page (topicsList.htm), topic {n}: {m['topic']}{EXTRA.get(label, '')}"
+    cov = {"status": "stated", "evidence": quote, "where": where, "as_written": quote}
+    topics.append({"label": label, "coverage": {i: dict(cov) for i in INSTRUCTORS}})
+d["topics"] = topics
+for who in INSTRUCTORS:
     d["instructors"][who]["external_schedule_url"] = URL
-d["notes"] = (d.get("notes") or "") + " Topics-list page (topicsList.htm) credited to both instructors at the project owner's request."
+d["notes"] = ("Topic list taken from the course topics-list page (topicsList.htm), which both sections teach; "
+              "applied identically to both instructors at the project owner's request.")
 json.dump(d, open(path, "w", encoding="utf8"), indent=1, ensure_ascii=False)
-print(log, "| total rows now:", len(d["topics"]))
+print(len(topics), "topics, identical for", INSTRUCTORS)
