@@ -3,7 +3,7 @@
 
 * Kaur's syllabus PDF links to the page (hidden hyperlink). Scott's syllabus points to his course web page and numbers
   exam coverage "Topics 1 - 9" etc. but does not print this URL; the credit for him is recorded as such.
-* Adds the page's numbered major topics and every sub-topic as rows; rows that already exist (same concept) just gain
+* Adds the page's numbered MAJOR topics only (sub-topics are not rows; merged into existing labels where they match); rows that already exist (same concept) just gain
   the missing instructor's credit. The "Prerequisite knowledge" list and "Course Introduction" are not treated as topics.
 * Quotes come from data/supplemental/314_topicsList.txt (accepted by the validator via topic_in extra_text_files).
 Idempotent: rows/credits added by an earlier run (marked supplemental) are removed first.
@@ -31,10 +31,10 @@ MAJOR_TO_EXISTING = {
     "Trees": ["Trees"], "Binary Search Trees": ["Binary search trees"], "Heaps": ["Heaps"], "Graphs": ["Graphs"],
     "The Trie data structure. Implementation and uses.": ["Tries"], "Hash tables": ["Hash tables"],
     "Dynamic Programming": ["Dynamic programming"], "Functional Programming in Java via streams.": ["Functional programming in Java"],
-    "Maps, Sets": ["Maps", "Sets"],
+    "Maps, Sets": ["Maps", "Sets"], "Red-Black Trees": ["Balanced binary search trees"], "Fast Sorting": ["Sorting and searching algorithms"],
 }
 MAJOR_NEW_LABEL = {"Generics": "Generics", "Interfaces": "Interfaces", "Abstract Classes": "Abstract classes", "Linked Lists": "Linked lists",
-                   "Recursive Backtracking": "Recursive backtracking", "Fast Sorting": "Fast sorting", "Red-Black Trees": "Red-black trees",
+                   "Recursive Backtracking": "Recursive backtracking",
                    "Hoffman code tress": "Huffman code trees"}
 SKIP_MAJOR = {"Course Introduction", "General skills"}
 SHORT = [
@@ -90,15 +90,6 @@ for t in page["topics"]:
     if major not in SKIP_MAJOR:
         for lab in MAJOR_TO_EXISTING.get(major, [MAJOR_NEW_LABEL.get(major, short_label(major))]):
             add(lab, major, n, major, major)
-    for s in t["subtopics"]:
-        lab = short_label(s)
-        if norm(lab) in rows and rows[norm(lab)].get("supplemental") and rows[norm(lab)] is not None and norm(lab) != norm(s) is False:
-            pass
-        # a duplicate sub-topic text under another major gets the major in its label
-        if norm(lab) in rows and rows[norm(lab)].get("supplemental") and any(
-                c.get("as_written") == s and c["where"].split(": ")[1].split(".")[0] != major for c in rows[norm(lab)]["coverage"].values()):
-            lab = f"{lab} ({major})"
-        add(lab, s, n, major, s)
 
 # instructors: both point at the page as their detailed topic source
 for who in (KAUR, SCOTT):
