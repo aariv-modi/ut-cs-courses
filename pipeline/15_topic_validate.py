@@ -43,6 +43,8 @@ def validate(course):
     texts = {}
     for i in inp["instructors"]:
         t = (ROOT / i["text_file"]).read_text(encoding="utf8", errors="ignore")
+        for x in i.get("extra_text_files", []):
+            t += "\n" + (ROOT / x).read_text(encoding="utf8", errors="ignore")
         texts[i["name"]] = (norm(t), set(norm(t).split()), len(t))
     names = set(texts)
     if out.get("course") != course:

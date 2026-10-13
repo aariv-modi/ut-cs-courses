@@ -3,6 +3,7 @@ import json, os, re
 from common import ROOT
 
 ds = json.load(open(ROOT / "data/dataset.json", encoding="utf8"))["courses"]
+OV = json.load(open(ROOT / "data/overrides.json", encoding="utf8"))
 ct = json.load(open(ROOT / "data/catalog_text.json", encoding="utf8"))
 web = {f[:-4] for f in os.listdir(ROOT / "data/syllabi_web") if f.endswith(".txt")}
 out_dir = ROOT / "data/topic_in"; out_dir.mkdir(exist_ok=True)
@@ -32,6 +33,8 @@ for k, c in ds.items():
             if dp.exists():
                 d = json.load(open(dp, encoding="utf8"))
                 entry["toc_hints"] = [{"topic": t["topic"], "evidence": t.get("evidence"), "toc_url": (t.get("textbook_ref") or {}).get("toc_url")} for t in d.get("topics", [])]
+        if e.get("syllabus_id") and e["syllabus_id"] in OV.get("supplemental_sources", {}):
+            entry["extra_text_files"] = OV["supplemental_sources"][e["syllabus_id"]]
         ins.append(entry)
     if not ins:
         continue
