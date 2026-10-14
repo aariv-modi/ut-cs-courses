@@ -108,7 +108,10 @@ def _upgrade(n):                                   # repository name with an ini
     if len(n.split()[0]) > 1:
         return n
     m = [r for r in reg_names if same_person(r, n)]
-    return (_pretty(m[0]).split()[0] + " " + " ".join(n.split()[1:])) if len({_pretty(x) for x in m}) == 1 else n
+    if len({_pretty(x) for x in m}) != 1:
+        return n
+    first, rest = _pretty(m[0]).split()[0], n.split()[1:]
+    return " ".join(rest if rest and rest[0] == first else [first] + rest)   # "C Greg Plaxton" -> "Greg Plaxton", not "Greg Greg Plaxton"
 
 def _display(n):
     if s_src == "registrar":
