@@ -8,7 +8,8 @@ Sources per instructor:
   data/supplemental/439_norman_schedule.txt, accepted by the validator through overrides.supplemental_sources.
 * Mootaz Elnozahy - SimpleSyllabus PDF: goals, five-part course structure, catalog description.
   Norman's site says it is "taught in conversation and collaboration with Dr. Mootaz Elnozahy" and his project windows
-  match hers, but his own syllabus does not name the projects, so nothing is credited to him from her site.
+  match hers, but his own syllabus does not name the projects, so her project objectives are credited to him only as
+  "possible" (hedged), at the project owner's request.
 Assigned readings alone are not used as evidence; lecture titles and project objectives are.
 Re-runnable: rebuilds the topic list from scratch each time.
 """
@@ -140,11 +141,27 @@ ROWS = [
         E: c(CATALOG, "Catalog Description; five group programming assignments", "Writing pieces of an operating system")}),
 ]
 
+# Elnozahy, hedged: Norman's site says the course is taught in collaboration with him and his five project windows match
+# her Projects 0-4, so her project objectives are credited to him as "possible" (project owner approved).
+HEDGE_E = ("hedged: from Alison Norman's course project page; her site says the course is taught in collaboration with him and his "
+           "five project date windows match hers, but his syllabus does not name the projects")
+for label, quote, proj in [
+        ("Writing a shell", "Project 0: UTCS Shell", "Project 0"),
+        ("System calls (fork, exec)", "Become familiar with shells, fork(), exec(), and other systems concepts", "Project 0"),
+        ("Threads", "Understanding interrupts, thread state, and thread scheduling", "Project 1"),
+        ("Interrupts", "Understanding interrupts, thread state, and thread scheduling", "Project 1"),
+        ("System calls (fork, exec)", "Understanding how user programs interact with the OS", "Project 2"),
+        ("Paging and page replacement", "Understanding paging, page replacement, and other virtual memory concepts", "Project 3"),
+        ("File systems", "Understanding file systems, including directory structure, file growth, and multithreading", "Project 4")]:
+    cov = dict(ROWS)[label]
+    if E not in cov:
+        cov[E] = c(quote, f"{proj}; {HEDGE_E}", status="possible")
+
 d["topics"] = [{"label": lab, "coverage": cov} for lab, cov in ROWS]
 d["instructors"][N].update({"detail_level": "weekly_schedule", "external_schedule_url": SCHED,
                             "document_note": "Syllabus defers to the course website; topics come from its dated schedule and project page."})
 d["notes"] = ("Reviewed line by line against all three syllabi (Oct 2026). Norman's topics come from the course website her syllabus points to. "
               "Elnozahy's syllabus gives a five-part outline only; Norman's site says the course is taught in collaboration with him, "
-              "but nothing is credited to him from her site.")
+              "and his project windows match hers, so her project objectives are credited to him as possible (hedged).")
 json.dump(d, open(path, "w", encoding="utf8"), indent=1, ensure_ascii=False)
 print(len(ROWS), "topics;", {n: sum(n in cov for _, cov in ROWS) for n in (G, N, E)})
