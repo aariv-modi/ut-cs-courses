@@ -65,6 +65,9 @@ for num, c in ds["courses"].items():
     for e in c["instructors"]:
         e["topics"] = []
         meta = (t or {}).get("instructors", {}).get(e["name"])
+        e.pop("topics_excluded", None)
+        if e["name"] in overrides.get("topic_exclude_instructors", {}).get(num, []):
+            meta, e["topics_excluded"] = None, True
         if not meta:
             continue
         e["detail_level"] = meta.get("detail_level")

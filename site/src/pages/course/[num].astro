@@ -81,7 +81,8 @@ const toc = [{ id: 'overview', label: 'Overview' }, ...(shown.length ? [{ id: 'i
           {e.textbooks.map((t: any, i: number) => (<span>{i ? '; ' : ''}{t.title}{t.edition ? `, ${/ed/i.test(t.edition) ? t.edition : t.edition + ' ed.'}` : ''}{t.authors ? ` (${t.authors})` : ''} <span class="muted">[{t.status}]</span></span>))}
         </p>
       )}
-      {!(e.topics && e.topics.length > 0) && e.syllabus_url && !(e.syllabus_is_web_only && !e.pdf_url) && <p class="muted small">No topics extracted: the public syllabus doesn't list any. That doesn't mean the course doesn't cover them.</p>}
+      {e.topics_excluded && <p class="muted small">Topics for this instructor are not shown yet: this syllabus is left out of the topic analysis for now.</p>}
+      {!e.topics_excluded && !(e.topics && e.topics.length > 0) && e.syllabus_url && !(e.syllabus_is_web_only && !e.pdf_url) && <p class="muted small">No topics extracted: the public syllabus doesn't list any. That doesn't mean the course doesn't cover them.</p>}
     </section>
   ))}
 

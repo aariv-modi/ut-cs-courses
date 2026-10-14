@@ -14,6 +14,8 @@ items = []
 for k, c in ds.items():
     ins = []
     for e in c["instructors"]:
+        if e["name"] in OV.get("topic_exclude_instructors", {}).get(k, []):   # left out of topic analysis on request
+            continue
         if e.get("syllabus_is_web_only"):
             code = re.search(r"/doc/([a-z0-9]+)", e["syllabus_url"]).group(1)
             if code not in web:
